@@ -1,0 +1,42 @@
+# MeTube용 Dockerfile
+FROM ghcr.io/alexta69/metube:latest
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 사용자 및 그룹 생성 (UID:GID = 1035:100)
+RUN groupadd -g 100 metube 2>/dev/null || true && \
+    useradd -u 1035 -g 100 -s /bin/bash -m metube
+
+# 필요한 디렉토리 생성 (사용자 생성 후)
+RUN mkdir -p /app/config /app/downloads /downloads
+
+# 디렉토리 소유권 및 권한 설정
+RUN chown -R metube:metube /app /downloads && \
+    chmod -R 755 /app/config /app/downloads /downloads
+
+# 사용자 전환
+USER metube
+
+# 사용자 설정 필요: 추가 패키지 설치
+# RUN apt-get update && apt-get install -y \
+#     package_name \
+#     && rm -rf /var/lib/apt/lists/*
+
+# 사용자 설정 필요: 환경변수 기본값 설정
+# ENV DOWNLOAD_QUALITY=best
+# ENV DOWNLOAD_FORMAT=mp4
+# ENV MAX_DOWNLOAD_SIZE=10
+# ENV DOWNLOAD_SPEED_LIMIT=0
+# ENV AUTO_DOWNLOAD=false
+# ENV NOTIFICATION_ENABLED=true
+
+# 포트 노출
+EXPOSE 8081
+
+# 헬스체크 설정
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8081/ || exit 1
+
+# 사용자 설정 필요: 실행 명령어
+# CMD ["python", "app.py"]

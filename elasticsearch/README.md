@@ -20,9 +20,10 @@ docker-compose up -d
 - **Kibana**: http://[NAS_IP]:5601
 
 ### 3. 파일 검색 설정
-1. 검색할 파일들을 `./documents/` 폴더에 복사
-2. Logstash가 자동으로 파일을 인덱싱
-3. Kibana에서 검색 및 관리
+1. Synology NAS에서 `/volume1/검색파일/` 폴더 생성
+2. 검색할 파일들을 해당 폴더에 복사
+3. Logstash가 자동으로 파일을 인덱싱
+4. Kibana에서 검색 및 관리
 
 ## 디렉토리 구조
 ```
@@ -31,8 +32,10 @@ elasticsearch/
 ├── config/
 │   ├── elasticsearch.yml
 │   └── logstash.conf
-├── documents/          # 검색할 파일들
 └── elasticsearch_data/ # Elasticsearch 데이터
+
+# Synology NAS 볼륨
+/volume1/검색파일/      # 검색할 파일들 (다른 볼륨)
 ```
 
 ## 주요 설정
@@ -48,8 +51,9 @@ elasticsearch/
 
 ### Logstash
 - 포트: 5044
-- 파일 모니터링: `./documents/**/*`
+- 파일 모니터링: `/volume1/검색파일/**/*`
 - 자동 인덱싱
+- Docker 전용 계정 권한: `1000:1000`
 
 ## 검색 예시
 

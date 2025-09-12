@@ -1,0 +1,67 @@
+services:
+  metube:
+    build:
+      context: .
+      dockerfile: Dockerfile.metube  # Dockerfile.<컨테이너명> 형식 사용
+      # 사용자 설정 필요: 빌드 컨텍스트 경로
+      # context: ./custom/path
+    container_name: metube
+    restart: no  # 재시작 정책: unless-stopped (명시적 중지 전까지 재시작)
+    # 선택지: no, always, unless-stopped, on-failure
+    # no: 자동 재시작 안함, always: 항상 재시작, on-failure: 오류 시만 재시작
+    user: "1035:100"  # 사용자 설정 필요: UID:GID (기본값: 1000:1000)
+    # 주의: 이 UID:GID는 Dockerfile에서 생성한 사용자와 일치해야 함
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52100:8081"  # 사용자 설정 필요: 포트 번호 (기본값: 8081)
+    volumes:
+      # 설정 및 메타데이터 볼륨 (설정 파일, 데이터베이스 등)
+      - ./config:/app/config:rw
+      # 다운로드된 동영상 저장 볼륨 (실제 미디어 파일들)
+      - /volume4/warehouse/metube:/app/downloads:rw
+      # MeTube 내부 /downloads 경로 마운트 (권한 문제 해결용)
+      - /volume4/warehouse/metube:/downloads:rw
+      # 사용자 설정 필요: 추가 볼륨 마운트 (예: 공유 폴더, 외부 저장소 등)
+      # - /path/to/shared/folder:/app/shared:rw
+      # - /path/to/external/storage:/app/external:ro  # 읽기 전용
+      # - /volume1/media:/app/media:rw  # 미디어 폴더 마운트
+      # - /volume2/backup:/app/backup:rw  # 백업 폴더 마운트
+    environment:
+      # 다운로드 품질 설정 (기본값: best)
+      DOWNLOAD_QUALITY: best  # 선택지: best, worst, 720p, 480p, 360p
+      # 다운로드 형식 설정 (기본값: mp4)
+      DOWNLOAD_FORMAT: mp4  # 선택지: mp4, webm, mkv, avi
+      # 최대 다운로드 크기 단위: GB. (기본값: 10GB)
+      MAX_DOWNLOAD_SIZE: 30
+      # 다운로드 속도 제한 단위: MB/s. (기본값: 0 = 제한 없음)
+      DOWNLOAD_SPEED_LIMIT: 0  # 0은 제한 없음
+      # 자동 다운로드 설정. (기본값: false)
+      # true: URL 입력 시 즉시 다운로드 시작 (대기열 없이 바로 처리)
+      # false: URL 입력 후 수동으로 다운로드 버튼 클릭 필요
+      # 주의: 이 설정은 웹 인터페이스에서도 변경 가능하며, 컨테이너 재시작 시 이 값으로 초기화됨
+      AUTO_DOWNLOAD: false  # 선택지: true, false
+      # 다운로드 완료 후 알림 설정 (기본값: true)
+      NOTIFICATION_ENABLED: true  # 선택지: true, false
+    networks:
+      - metube_network
+
+networks:
+  metube_network:
+    driver: bridge
+    # 네트워크 이름 (기본값: metube_metube_network)
+    name: metube_network
+
+# 사용자 설정 필요: 볼륨 설정 (외부 볼륨 사용 시)
+# volumes:
+#   metube_config:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: /your/local/config/path
+#   metube_downloads:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: /your/local/downloads/path

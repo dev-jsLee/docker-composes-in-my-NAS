@@ -1,3 +1,10 @@
+# ===== 환경 변수 설정 =====
+# 검색할 폴더 경로들 (여러 폴더 지원)
+x-search-folders:
+  - "/volume1/공유폴더_2024/☞대상물_1"
+  - "/volume1/공유폴더_workspace/☞대상물_1"
+  # - "/volume1/검색파일"
+
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -8,16 +15,16 @@ services:
       - cluster.name=docker-cluster
       - discovery.type=single-node
       # 보안 설정 (개발용 - 운영환경에서는 변경 필요)
-      - xpack.security.enabled=false
-      - xpack.security.enrollment.enabled=false
+      - xpack.security.enabled=true
+      - xpack.security.enrollment.enabled=true
       # 메모리 설정
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       # 네트워크 설정
       - network.host=0.0.0.0
       - http.port=9200
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "11901:9200"
+      - "11902:9300"
     volumes:
       # 데이터 저장소
       - ./elasticsearch_data:/usr/share/elasticsearch/data
@@ -27,7 +34,7 @@ services:
     # 메모리 제한
     mem_limit: 2g
     # CPU 제한
-    cpus: '1.0'
+    # cpus: '1.0'
     # 헬스체크
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
@@ -48,7 +55,7 @@ services:
       - SERVER_NAME=kibana
       - SERVER_HOST=0.0.0.0
     ports:
-      - "5601:5601"
+      - "11903:5601"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -60,13 +67,17 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: logstash
+    # Docker 전용 계정으로 권한 설정
+    user: "1133:101"  # Synology NAS Docker 사용자 ID
     volumes:
       # Logstash 설정 파일
       - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-      # 검색할 파일들이 있는 디렉토리
-      - ./documents:/documents:ro
+      # 검색할 파일들이 있는 디렉토리들 (여러 폴더 지원)
+      - /volume1/공유폴더_2024/☞대상물_1:/documents/대상물_2024:ro
+      - /volume1/공유폴더_workspace/☞대상물_1:/documents/대상물_2025:ro
+      # - /volume1/검색파일:/documents/검색파일:ro
     ports:
-      - "5044:5044"
+      - "11904:5044"
     depends_on:
       elasticsearch:
         condition: service_healthy
