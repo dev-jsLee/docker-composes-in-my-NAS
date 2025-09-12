@@ -1,0 +1,23 @@
+# Elasticsearch 설정 파일
+
+# 클러스터 설정
+cluster.name: docker-cluster
+node.name: elasticsearch
+
+# 네트워크 설정
+network.host: 0.0.0.0
+http.port: 9200
+
+# 보안 설정 (개발용)
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+
+# 인덱스 설정
+action.auto_create_index: true
+action.destructive_requires_name: false
+
+# 메모리 설정
+bootstrap.memory_lock: true
+
+# 로그 설정
+logger.level: INFO

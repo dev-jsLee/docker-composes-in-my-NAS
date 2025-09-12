@@ -1,0 +1,37 @@
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: meilisearch
+    ports:
+      - "11900:7700"
+    environment:
+      # 마스터 키 설정 (운영환경에서는 반드시 변경)
+      - MEILI_MASTER_KEY=205AFD3E-5E67-45AB-886D-42262E2B4D14
+      # 환경 설정
+      - MEILI_ENV=production # development, production
+      # 로그 레벨
+      - MEILI_LOG_LEVEL=INFO
+      # HTTP 페이로드 크기 제한 (기본: 100MB)
+      - MEILI_HTTP_PAYLOAD_SIZE_LIMIT=104857600
+    volumes:
+      # 데이터 디렉토리 마운트 (검색 인덱스와 설정이 저장됨)
+      - ./meili_data:/meili_data
+      # 옵션: 검색할 문서 파일들이 있는 디렉토리
+      # - ./documents:/documents:ro  # 읽기 전용으로 마운트
+    restart: unless-stopped
+    # 메모리 제한 (옵션)
+    mem_limit: 1g
+    # CPU 제한 (옵션)
+    # cpus: '0.5'
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# 선택사항: 네트워크 설정
+networks:
+  default:
+    name: meilisearch_network
