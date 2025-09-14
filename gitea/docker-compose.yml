@@ -1,0 +1,75 @@
+services:
+  # Gitea Git 서버
+  gitea:
+    image: gitea/gitea:1.21
+    container_name: gitea_server
+    environment:
+      - USER_UID=1026
+      - USER_GID=101
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=gitea_db:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=gitea
+      - GITEA__database__PASSWD=JSlee.9500266
+      # 필수: 서버 도메인 설정 (DSM IP 또는 도메인으로 변경)
+      - GITEA__server__DOMAIN=localhost
+      - GITEA__server__ROOT_URL=http://localhost:3000
+      - GITEA__server__HTTP_PORT=3000
+      - GITEA__server__SSH_PORT=22
+      - GITEA__server__DISABLE_SSH=false
+      # 필수: 보안 키 설정 (프로덕션에서 반드시 변경)
+      - GITEA__security__SECRET_KEY=FF2744BD-68A3-45F7-B464-E0027C9436B6
+      - GITEA__security__INSTALL_LOCK=true
+      # 선택: 관리자 계정 설정
+      - GITEA__service__DISABLE_REGISTRATION=false
+    restart: unless-stopped
+    networks:
+      - gitea_network
+    volumes:
+      - gitea_data:/data
+      # 선택: 로그 파일 외부 저장
+      # - ./logs:/data/log
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52200:3000"  # HTTP 웹 인터페이스
+      - "222:22"    # SSH (DSM SSH 포트 충돌 방지)
+    depends_on:
+      gitea_db:
+        condition: service_healthy
+
+  # PostgreSQL 데이터베이스
+  gitea_db:
+    image: postgres:15-alpine
+    container_name: gitea_db
+    environment:
+      - POSTGRES_DB=gitea
+      - POSTGRES_USER=gitea
+      # 필수: 데이터베이스 비밀번호 설정
+      - POSTGRES_PASSWORD=gitea_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C
+    restart: unless-stopped
+    networks:
+      - gitea_network
+    volumes:
+      - gitea_db_data:/var/lib/postgresql/data
+    # 선택: 외부 접근용 포트 (개발/관리용)
+    # ports:
+    #   - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitea -d gitea"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+# 네트워크 설정
+networks:
+  gitea_network:
+    driver: bridge
+
+# 볼륨 설정 (데이터 영속성)
+volumes:
+  gitea_data:
+    driver: local
+  gitea_db_data:
+    driver: local
