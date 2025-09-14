@@ -7,7 +7,7 @@ services:
       - USER_UID=1026
       - USER_GID=101
       - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=gitea_db:5432
+      - GITEA__database__HOST=gitea_db:52432
       - GITEA__database__NAME=gitea
       - GITEA__database__USER=gitea
       - GITEA__database__PASSWD=JSlee.9500266
@@ -22,15 +22,15 @@ services:
       - GITEA__security__INSTALL_LOCK=true
       # 선택: 관리자 계정 설정
       - GITEA__service__DISABLE_REGISTRATION=false
-    restart: unless-stopped
+    restart: on-failure:2  # 실패 시 최대 2회 재시도 후 중지
     networks:
       - gitea_network
     volumes:
-      - gitea_data:/data
+      - /volume2/git/gitea/data:/data
       # 선택: 로그 파일 외부 저장 (로컬 경로로 변경 가능)
       - /volume2/git/gitea/logs:/data/log
       # 선택: 설정 파일 외부 저장
-      # - ./gitea_config:/data/gitea/conf
+      - /volume2/git/gitea/config:/data/gitea/conf
     ports:
       # 포트: 호스트포트:컨테이너포트
       - "52200:3000"  # HTTP 웹 인터페이스
@@ -49,16 +49,13 @@ services:
       # 필수: 데이터베이스 비밀번호 설정
       - POSTGRES_PASSWORD=gitea_password
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C
-    restart: unless-stopped
+    restart: on-failure:2  # 실패 시 최대 2회 재시도 후 중지
     networks:
       - gitea_network
     volumes:
       - gitea_db_data:/var/lib/postgresql/data
-      # 선택: 데이터베이스 파일 외부 저장 (로컬 경로로 변경 가능)
-      # - ./gitea_database:/var/lib/postgresql/data
-    # 선택: 외부 접근용 포트 (개발/관리용)
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "52432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gitea -d gitea"]
       interval: 30s
