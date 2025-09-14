@@ -7,13 +7,13 @@ services:
       - USER_UID=1026
       - USER_GID=101
       - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=gitea_db:52432
+      - GITEA__database__HOST=gitea_db:5432
       - GITEA__database__NAME=gitea
       - GITEA__database__USER=gitea
       - GITEA__database__PASSWD=JSlee.9500266
       # 필수: 서버 도메인 설정 (DSM IP 또는 도메인으로 변경)
       - GITEA__server__DOMAIN=localhost
-      - GITEA__server__ROOT_URL=http://localhost:3000
+      - GITEA__server__ROOT_URL=http://localhost:52200
       - GITEA__server__HTTP_PORT=3000
       - GITEA__server__SSH_PORT=22
       - GITEA__server__DISABLE_SSH=false
@@ -46,14 +46,14 @@ services:
     environment:
       - POSTGRES_DB=gitea
       - POSTGRES_USER=gitea
-      # 필수: 데이터베이스 비밀번호 설정
-      - POSTGRES_PASSWORD=gitea_password
+      # 필수: 데이터베이스 비밀번호 설정 (Gitea와 일치)
+      - POSTGRES_PASSWORD=JSlee.9500266
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C
     restart: on-failure:2  # 실패 시 최대 2회 재시도 후 중지
     networks:
       - gitea_network
     volumes:
-      - gitea_db_data:/var/lib/postgresql/data
+      - /volume2/git/gitea/database:/var/lib/postgresql/data
     ports:
       - "52432:5432"
     healthcheck:
@@ -68,19 +68,3 @@ networks:
   gitea_network:
     driver: bridge
 
-# 볼륨 설정 (데이터 영속성)
-volumes:
-  gitea_data:
-    driver: local
-    # 선택: 특정 경로에 데이터 저장
-    driver_opts:
-      type: none
-      o: bind
-      device: /volume2/git/gitea/data
-  gitea_db_data:
-    driver: local
-    # 선택: 특정 경로에 DB 데이터 저장
-    driver_opts:
-      type: none
-      o: bind
-      device: /volume2/git/gitea/database
