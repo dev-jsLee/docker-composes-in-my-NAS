@@ -10,7 +10,7 @@ services:
     environment:
       - TZ=Asia/Seoul
     volumes:
-      - it-tools-data:/app/data
+      - /volume4/warehouse/it-tools-data:/app/data
     networks:
       - it-tools-network
 
