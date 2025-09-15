@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: on-failure:2
+    ports:
+      - "52020:80"
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - it-tools-data:/app/data
+    networks:
+      - it-tools-network
+
+volumes:
+  it-tools-data:
+    driver: local
+
+networks:
+  it-tools-network:
+    driver: bridge
