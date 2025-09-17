@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  stirling-pdf:
+    image: frooodle/s-pdf:latest
+    container_name: stirling-pdf
+    restart: on-failure:2
+    ports:
+      - "52021:8080"
+    environment:
+      - TZ=Asia/Seoul
+      - DOCKER_ENABLE_SECURITY=false
+      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false
+      - LANGS=ko_KR
+    volumes:
+      - /volume4/warehouse/stirling-pdf-data:/usr/share/tessdata
+      - /volume4/warehouse/stirling-pdf-config:/configs
+      - /volume4/warehouse/stirling-pdf-logs:/logs
+    networks:
+      - pdf-network
+
+networks:
+  pdf-network:
+    driver: bridge
