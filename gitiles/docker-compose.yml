@@ -1,0 +1,37 @@
+services:
+  gitiles:
+    image: gerritcodereview/gitiles:latest
+    container_name: gitiles
+    restart: on-failure:2
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52041:8080"  # Gitiles 웹 인터페이스
+    environment:
+      - TZ=Asia/Seoul
+      # 선택: Git 저장소 기본 설정
+      - GITILES_CONFIG_PATH=/var/gitiles/gitiles.config
+      # 선택: 로그 레벨 설정
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    volumes:
+      # Git 저장소들이 있는 디렉토리 (읽기 전용)
+      - /volume2/git:/var/git:ro
+      # Gitiles 설정 파일
+      - /volume4/warehouse/gitiles-config:/var/gitiles
+      # 선택: 추가 Git 저장소 경로
+      # - /volume1/repositories:/var/repositories:ro
+      # - /volume3/projects:/var/projects:ro
+    networks:
+      - gitiles-network
+    # 메모리 제한 (옵션)
+    mem_limit: 512m
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  gitiles-network:
+    driver: bridge

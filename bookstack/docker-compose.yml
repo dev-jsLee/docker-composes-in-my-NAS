@@ -1,0 +1,73 @@
+services:
+  bookstack:
+    image: linuxserver/bookstack:latest
+    container_name: bookstack
+    restart: on-failure:2
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52045:80"  # BookStack 웹 인터페이스
+    environment:
+      - TZ=Asia/Seoul
+      # 필수: 사용자 권한 설정
+      - PUID=1000
+      - PGID=1000
+      # 필수: 애플리케이션 URL 설정
+      - APP_URL=http://localhost:52045
+      # 데이터베이스 설정
+      - DB_HOST=bookstack_db
+      - DB_PORT=3306
+      - DB_USER=bookstack
+      - DB_PASS=bookstack123
+      - DB_DATABASE=bookstackapp
+      # 선택: 메일 설정 (비밀번호 재설정용)
+      # - MAIL_DRIVER=smtp
+      # - MAIL_HOST=smtp.gmail.com
+      # - MAIL_PORT=587
+      # - MAIL_USERNAME=your_email@gmail.com
+      # - MAIL_PASSWORD=your_password
+      # - MAIL_ENCRYPTION=tls
+      # - MAIL_FROM_ADDRESS=your_email@gmail.com
+    volumes:
+      # BookStack 설정 및 업로드 파일 저장
+      - /volume4/warehouse/bookstack-config:/config
+      # 선택: 추가 데이터 저장소
+      # - /volume4/warehouse/bookstack-uploads:/app/www/uploads
+      # - /volume4/warehouse/bookstack-storage:/app/www/storage
+    networks:
+      - bookstack-network
+    depends_on:
+      bookstack_db:
+        condition: service_healthy
+    # 메모리 제한
+    mem_limit: 512m
+
+  # MariaDB 데이터베이스
+  bookstack_db:
+    image: mariadb:11
+    container_name: bookstack_db
+    restart: on-failure:2
+    environment:
+      # 필수: 데이터베이스 설정 (BookStack과 일치)
+      - MARIADB_ROOT_PASSWORD=bookstack_root123
+      - MARIADB_DATABASE=bookstackapp
+      - MARIADB_USER=bookstack
+      - MARIADB_PASSWORD=bookstack123
+      - MARIADB_AUTO_UPGRADE=1
+      - MARIADB_INITDB_SKIP_TZINFO=1
+    volumes:
+      - /volume4/warehouse/bookstack-database:/var/lib/mysql
+    networks:
+      - bookstack-network
+    # 메모리 제한
+    mem_limit: 256m
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  bookstack-network:
+    driver: bridge

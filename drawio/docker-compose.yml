@@ -1,0 +1,36 @@
+services:
+  drawio:
+    image: jgraph/drawio:latest
+    container_name: drawio
+    restart: on-failure:2
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52040:8080"  # Draw.io 웹 인터페이스
+    environment:
+      - TZ=Asia/Seoul
+      # 선택: 플러그인 설정
+      - DRAWIO_PLUGINS=1
+      # 선택: 외부 서비스 연동 (Google Drive, OneDrive 등)
+      - DRAWIO_GOOGLE_DRIVE=1
+      - DRAWIO_ONEDRIVE=1
+      - DRAWIO_DROPBOX=1
+    volumes:
+      # 설정 및 데이터 저장 (다이어그램 파일들)
+      - /volume4/warehouse/drawio-data:/usr/local/tomcat/webapps/draw/data
+      # 선택: 커스텀 플러그인 폴더
+      # - /volume4/warehouse/drawio-plugins:/usr/local/tomcat/webapps/draw/plugins:ro
+    networks:
+      - drawio-network
+    # 메모리 제한 (옵션)
+    mem_limit: 512m
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  drawio-network:
+    driver: bridge

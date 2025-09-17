@@ -1,0 +1,63 @@
+services:
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: on-failure:2
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52043:81"    # 관리 웹 인터페이스
+      - "52080:80"    # HTTP 프록시
+      - "52443:443"   # HTTPS 프록시
+    environment:
+      - TZ=Asia/Seoul
+      # 데이터베이스 설정
+      - DB_MYSQL_HOST=npm_db
+      - DB_MYSQL_PORT=3306
+      - DB_MYSQL_USER=npm
+      - DB_MYSQL_PASSWORD=npm123
+      - DB_MYSQL_NAME=npm
+      # 선택: SSL 설정
+      - DISABLE_IPV6=true
+    volumes:
+      # 설정 및 데이터 저장
+      - /volume4/warehouse/nginx-proxy-data:/data
+      # SSL 인증서 저장
+      - /volume4/warehouse/nginx-proxy-ssl:/etc/letsencrypt
+      # 선택: 커스텀 Nginx 설정
+      # - /volume4/warehouse/nginx-proxy-custom:/etc/nginx/custom:ro
+    networks:
+      - nginx-proxy-network
+    depends_on:
+      npm_db:
+        condition: service_healthy
+    # 메모리 제한
+    mem_limit: 512m
+
+  # MariaDB 데이터베이스
+  npm_db:
+    image: mariadb:11
+    container_name: npm_db
+    restart: on-failure:2
+    environment:
+      # 필수: 데이터베이스 설정 (Nginx Proxy Manager와 일치)
+      - MARIADB_ROOT_PASSWORD=npm_root123
+      - MARIADB_DATABASE=npm
+      - MARIADB_USER=npm
+      - MARIADB_PASSWORD=npm123
+    volumes:
+      - /volume4/warehouse/nginx-proxy-database:/var/lib/mysql
+    networks:
+      - nginx-proxy-network
+    # 메모리 제한
+    mem_limit: 256m
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  nginx-proxy-network:
+    driver: bridge

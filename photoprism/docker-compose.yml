@@ -1,0 +1,80 @@
+services:
+  photoprism:
+    image: photoprism/photoprism:latest
+    container_name: photoprism
+    restart: on-failure:2
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52042:2342"  # PhotoPrism 웹 인터페이스
+    environment:
+      - TZ=Asia/Seoul
+      # 필수: 관리자 계정 설정
+      - PHOTOPRISM_ADMIN_USER=admin
+      # 필수: 관리자 비밀번호 (반드시 변경)
+      - PHOTOPRISM_ADMIN_PASSWORD=photoprism123
+      # 필수: 사이트 URL 설정
+      - PHOTOPRISM_SITE_URL=http://localhost:52042
+      - PHOTOPRISM_SITE_TITLE=PhotoPrism
+      # 데이터베이스 설정 (MariaDB 사용)
+      - PHOTOPRISM_DATABASE_DRIVER=mysql
+      - PHOTOPRISM_DATABASE_SERVER=photoprism_db:3306
+      - PHOTOPRISM_DATABASE_NAME=photoprism
+      - PHOTOPRISM_DATABASE_USER=photoprism
+      - PHOTOPRISM_DATABASE_PASSWORD=photoprism123
+      # AI 기능 설정
+      - PHOTOPRISM_DISABLE_TENSORFLOW=false  # AI 얼굴 인식 활성화
+      - PHOTOPRISM_DISABLE_FACES=false       # 얼굴 인식 활성화
+      - PHOTOPRISM_DISABLE_CLASSIFICATION=false # 자동 분류 활성화
+      # 업로드 및 변환 설정
+      - PHOTOPRISM_UPLOAD_NSFW=true
+      - PHOTOPRISM_DETECT_NSFW=false
+      # 로그 설정
+      - PHOTOPRISM_LOG_LEVEL=info
+    volumes:
+      # 사진 원본 저장소 (기존 사진들)
+      - /volume1/photo:/photoprism/originals:ro
+      # PhotoPrism 데이터 저장소 (썸네일, 메타데이터 등)
+      - /volume4/warehouse/photoprism-storage:/photoprism/storage
+      # 가져오기 폴더 (새로운 사진 업로드용)
+      - /volume4/warehouse/photoprism-import:/photoprism/import
+      # 선택: 추가 사진 폴더들
+      # - /volume2/photos:/photoprism/originals/volume2:ro
+      # - /volume3/backup_photos:/photoprism/originals/backup:ro
+    networks:
+      - photoprism-network
+    depends_on:
+      photoprism_db:
+        condition: service_healthy
+    # 메모리 제한 (AI 기능 때문에 더 많이 필요)
+    mem_limit: 2g
+
+  # MariaDB 데이터베이스
+  photoprism_db:
+    image: mariadb:11
+    container_name: photoprism_db
+    restart: on-failure:2
+    environment:
+      # 필수: 데이터베이스 설정 (PhotoPrism과 일치)
+      - MARIADB_AUTO_UPGRADE=1
+      - MARIADB_INITDB_SKIP_TZINFO=1
+      - MARIADB_DATABASE=photoprism
+      - MARIADB_USER=photoprism
+      - MARIADB_PASSWORD=photoprism123
+      - MARIADB_ROOT_PASSWORD=photoprism_root123
+    volumes:
+      - /volume4/warehouse/photoprism-database:/var/lib/mysql
+    networks:
+      - photoprism-network
+    # 메모리 제한
+    mem_limit: 512m
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  photoprism-network:
+    driver: bridge

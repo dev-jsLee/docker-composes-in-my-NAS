@@ -1,0 +1,37 @@
+services:
+  homer:
+    image: b4bz/homer:latest
+    container_name: homer
+    restart: on-failure:2
+    ports:
+      # 포트: 호스트포트:컨테이너포트
+      - "52044:8080"  # Homer 홈 대시보드
+    environment:
+      - TZ=Asia/Seoul
+      # 선택: 사용자 ID 설정 (권한 문제 해결용)
+      - UID=1000
+      - GID=1000
+      # 선택: 초기화 설정
+      - INIT_ASSETS=1  # 기본 설정 파일 생성
+    volumes:
+      # Homer 설정 파일들 (config.yml, 아이콘, 테마 등)
+      - /volume4/warehouse/homer-assets:/www/assets
+      # 선택: 커스텀 아이콘 폴더
+      # - /volume4/warehouse/homer-icons:/www/assets/icons:ro
+      # 선택: 커스텀 테마 폴더
+      # - /volume4/warehouse/homer-themes:/www/assets/themes:ro
+    networks:
+      - homer-network
+    # 메모리 제한 (가벼운 서비스)
+    mem_limit: 128m
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  homer-network:
+    driver: bridge
