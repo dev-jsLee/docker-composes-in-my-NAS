@@ -46,6 +46,8 @@ services:
     image: mariadb:11
     container_name: bookstack_db
     restart: on-failure:2
+    # 사용자 권한 설정 (DSM 환경)
+    user: "1000:1000"
     environment:
       # 필수: 데이터베이스 설정 (BookStack과 일치)
       - MARIADB_ROOT_PASSWORD=JSlee.9500266
@@ -54,6 +56,9 @@ services:
       - MARIADB_PASSWORD=JSlee.9500266
       - MARIADB_AUTO_UPGRADE=1
       - MARIADB_INITDB_SKIP_TZINFO=1
+      # 권한 문제 해결을 위한 추가 설정
+      - MARIADB_MYSQL_LOCALHOST_USER=1
+      - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
     volumes:
       - /volume4/warehouse/bookstack-database:/var/lib/mysql
     networks:
