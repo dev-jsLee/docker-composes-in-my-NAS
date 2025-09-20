@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # 홈페이지 서비스 (SSO + 대문 통합)
+  homepage-service:
+    build: 
+      context: ./homepage-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"  # 메인 포트
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - SESSION_SECRET=${SESSION_SECRET}
+      - DB_URL=${DATABASE_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - SERVICE_DISCOVERY_ENABLED=true
+      - NETWORK_SCAN_ENABLED=true
+    depends_on:
+      - redis
+    volumes:
+      - ./homepage-service:/app
+      - /app/node_modules
+    networks:
+      - sso-network
+
+
+  # 공유 Redis 세션 저장소
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - sso-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway (Nginx)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - homepage-service
+    networks:
+      - sso-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# 네트워크 정의
+networks:
+  sso-network:
+    driver: bridge
+
+# 볼륨 정의
+volumes:
+  redis-data:
+    driver: local

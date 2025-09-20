@@ -1,0 +1,73 @@
+{
+  "internalServices": [
+    {
+      "id": "board",
+      "name": "게시판",
+      "description": "공지사항 및 자유게시판",
+      "url": "/board",
+      "icon": "📝",
+      "category": "커뮤니케이션",
+      "status": "active",
+      "requiredRoles": ["user"],
+      "isInternal": true,
+      "features": ["글쓰기", "댓글", "파일첨부", "검색"]
+    },
+    {
+      "id": "calendar",
+      "name": "일정 공유",
+      "description": "팀 일정 관리 및 공유",
+      "url": "/calendar",
+      "icon": "📅",
+      "category": "협업",
+      "status": "active",
+      "requiredRoles": ["user"],
+      "isInternal": true,
+      "features": ["일정등록", "알림", "공유", "반복일정"]
+    },
+    {
+      "id": "gallery",
+      "name": "이미지 공유",
+      "description": "이미지 업로드 및 갤러리",
+      "url": "/gallery",
+      "icon": "🖼️",
+      "category": "미디어",
+      "status": "active",
+      "requiredRoles": ["user"],
+      "isInternal": true,
+      "features": ["이미지업로드", "썸네일", "앨범", "다운로드"]
+    }
+  ],
+  "externalServices": [],
+  "categories": [
+    {
+      "id": "커뮤니케이션",
+      "name": "커뮤니케이션",
+      "description": "소통과 정보 공유를 위한 서비스들",
+      "icon": "💬",
+      "order": 1
+    },
+    {
+      "id": "협업",
+      "name": "협업",
+      "description": "팀워크와 업무 효율성을 위한 서비스들",
+      "icon": "🤝",
+      "order": 2
+    },
+    {
+      "id": "미디어",
+      "name": "미디어",
+      "description": "파일 및 미디어 관리 서비스들",
+      "icon": "📁",
+      "order": 3
+    }
+  ],
+  "settings": {
+    "autoDiscovery": true,
+    "networkScanEnabled": true,
+    "scanPorts": [3000, 3001, 3002, 3003, 3004, 3005, 8000, 8080, 9000],
+    "healthCheckInterval": 30000,
+    "discoveryInterval": 60000,
+    "maxRetries": 3,
+    "timeout": 5000
+  }
+}

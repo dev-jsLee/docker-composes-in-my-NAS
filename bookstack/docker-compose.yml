@@ -13,12 +13,15 @@ services:
       - PGID=100
       # 필수: 애플리케이션 URL 설정
       - APP_URL=http://localhost:52045
-      # 데이터베이스 설정
-      - DB_HOST=bookstack_db
-      - DB_PORT=3306
-      - DB_USER=bookstack
-      - DB_PASS=JSlee.9500266
-      - DB_DATABASE=bookstackapp
+      # 데이터베이스 설정 (SQLite 사용 - 권한 문제 해결)
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/config/bookstack.db
+      # MariaDB 사용 시 아래 주석 해제
+      # - DB_HOST=bookstack_db
+      # - DB_PORT=3306
+      # - DB_USER=bookstack
+      # - DB_PASS=JSlee.9500266
+      # - DB_DATABASE=bookstackapp
       # 선택: 메일 설정 (비밀번호 재설정용)
       # - MAIL_DRIVER=smtp
       # - MAIL_HOST=smtp.gmail.com
@@ -35,9 +38,10 @@ services:
       - /volume4/warehouse/bookstack-storage:/app/www/storage
     networks:
       - bookstack-network
-    depends_on:
-      bookstack_db:
-        condition: service_healthy
+    # SQLite 사용 시 depends_on 불필요
+    # depends_on:
+    #   bookstack_db:
+    #     condition: service_healthy
     # 메모리 제한
     # mem_limit: 512m
 
@@ -46,8 +50,8 @@ services:
     image: mariadb:11
     container_name: bookstack_db
     restart: on-failure:2
-    # 사용자 권한 설정 (DSM 환경)
-    user: "1000:1000"
+    # 사용자 권한 설정 (DSM 환경 - BookStack과 일치)
+    user: "1026:100"
     environment:
       # 필수: 데이터베이스 설정 (BookStack과 일치)
       - MARIADB_ROOT_PASSWORD=JSlee.9500266
