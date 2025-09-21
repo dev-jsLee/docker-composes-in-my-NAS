@@ -3,8 +3,6 @@ services:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
     restart: on-failure:2
-    # DSM 환경에서 권한 설정
-    user: "1026:100"
     ports:
       # 포트: 호스트포트:컨테이너포트
       - "52043:81"    # 관리 웹 인터페이스
