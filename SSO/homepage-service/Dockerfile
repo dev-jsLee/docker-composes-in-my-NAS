@@ -5,7 +5,8 @@ FROM node:18-alpine
 WORKDIR /app
 
 # 패키지 파일 복사 및 의존성 설치
-COPY package*.json ./
+COPY package.json ./
+COPY package-lock.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # 애플리케이션 코드 복사

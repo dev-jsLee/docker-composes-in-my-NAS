@@ -1,5 +1,5 @@
 version: '3.8'
-
+ 
 services:
   # 홈페이지 서비스 (SSO + 대문 통합)
   homepage-service:
@@ -7,7 +7,7 @@ services:
       context: ./homepage-service
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"  # 메인 포트
+      - "52100:3000"  # 메인 포트
     environment:
       - NODE_ENV=development
       - REDIS_URL=redis://redis:6379
