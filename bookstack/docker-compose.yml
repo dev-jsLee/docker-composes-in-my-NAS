@@ -8,9 +8,9 @@ services:
       - "52045:80"  # BookStack 웹 인터페이스
     environment:
       - TZ=Asia/Seoul
-      # 필수: 사용자 권한 설정
-      - PUID=1026
-      - PGID=100
+      # DSM Docker에서는 PUID/PGID 설정 제거 (볼륨 권한 문제 해결)
+      # - PUID=1026
+      # - PGID=100
       # 필수: 애플리케이션 URL 설정 (WebStation에서 접근할 수 있는 주소)
       - APP_URL=http://localhost:52045
       # 데이터베이스 설정 (SQLite 사용 - 권한 문제 해결)
@@ -31,11 +31,11 @@ services:
       # - MAIL_ENCRYPTION=tls
       # - MAIL_FROM_ADDRESS=your_email@gmail.com
     volumes:
-      # BookStack 설정 및 업로드 파일 저장
-      - /volume4/warehouse/bookstack-config:/config
+      # DSM Docker에서는 Docker 볼륨을 사용하는 것이 더 안정적임
+      - bookstack_config:/config
       # 선택: 추가 데이터 저장소
-      - /volume4/warehouse/bookstack-uploads:/app/www/uploads
-      - /volume4/warehouse/bookstack-storage:/app/www/storage
+      - bookstack_uploads:/app/www/uploads
+      - bookstack_storage:/app/www/storage
     networks:
       - bookstack-network
     # SQLite 사용 시 depends_on 불필요
@@ -45,26 +45,26 @@ services:
     # 메모리 제한
     # mem_limit: 512m
 
-  # MariaDB 데이터베이스
-  bookstack_db:
-    image: mariadb:11
-    container_name: bookstack_db
-    restart: on-failure:2
-    # 사용자 권한 설정 (DSM 환경 - BookStack과 일치)
-    user: "1026:100"
-    environment:
-      # 필수: 데이터베이스 설정 (BookStack과 일치)
-      - MARIADB_ROOT_PASSWORD=JSlee.9500266
-      - MARIADB_DATABASE=bookstackapp
-      - MARIADB_USER=bookstack
-      - MARIADB_PASSWORD=JSlee.9500266
-      - MARIADB_AUTO_UPGRADE=1
-      - MARIADB_INITDB_SKIP_TZINFO=1
-      # 권한 문제 해결을 위한 추가 설정
-      - MARIADB_MYSQL_LOCALHOST_USER=1
-      - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
-    volumes:
-      - /volume4/warehouse/bookstack-database:/var/lib/mysql
+  # MariaDB 데이터베이스 (일단 주석 처리 - SQLite로 시작)
+  # bookstack_db:
+  #   image: mariadb:11
+  #   container_name: bookstack_db
+  #   restart: on-failure:2
+  #   # DSM Docker에서는 user 설정 제거
+  #   # user: "1026:100"
+  #   environment:
+  #     # 필수: 데이터베이스 설정 (BookStack과 일치)
+  #     - MARIADB_ROOT_PASSWORD=JSlee.9500266
+  #     - MARIADB_DATABASE=bookstackapp
+  #     - MARIADB_USER=bookstack
+  #     - MARIADB_PASSWORD=JSlee.9500266
+  #     - MARIADB_AUTO_UPGRADE=1
+  #     - MARIADB_INITDB_SKIP_TZINFO=1
+  #     # 권한 문제 해결을 위한 추가 설정
+  #     - MARIADB_MYSQL_LOCALHOST_USER=1
+  #     - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
+  #   volumes:
+  #     - bookstack_database:/var/lib/mysql
     networks:
       - bookstack-network
     # 메모리 제한
@@ -80,3 +80,14 @@ services:
 networks:
   bookstack-network:
     driver: bridge
+
+volumes:
+  # Docker 볼륨 사용 (DSM과 호환성이 좋음)
+  bookstack_config:
+    driver: local
+  bookstack_uploads:
+    driver: local
+  bookstack_storage:
+    driver: local
+  # bookstack_database:
+  #   driver: local
