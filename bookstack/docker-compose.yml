@@ -13,6 +13,8 @@ services:
       # - PGID=100
       # 필수: 애플리케이션 URL 설정 (WebStation에서 접근할 수 있는 주소)
       - APP_URL=http://localhost:52045
+      # 필수: Laravel 애플리케이션 키 (암호화용)
+      - APP_KEY=base64:XrJAIRjVMRE5Hxqd07XU4YvzMTJOkNeBIB5TKFBblYE=
       # 데이터베이스 설정 (MariaDB 사용 - 더 안정적)
       - DB_HOST=bookstack_db
       - DB_PORT=3306
@@ -60,9 +62,9 @@ services:
       - MARIADB_PASSWORD=JSlee.9500266
       - MARIADB_AUTO_UPGRADE=1
       - MARIADB_INITDB_SKIP_TZINFO=1
-      # 권한 문제 해결을 위한 추가 설정
-      - MARIADB_MYSQL_LOCALHOST_USER=1
-      - MARIADB_MYSQL_LOCALHOST_GRANTS=USAGE
+      # MariaDB 11에서 root 인증 문제 해결
+      - MARIADB_ROOT_HOST=%
+      - MARIADB_DEFAULT_AUTHENTICATION_PLUGIN=mysql_native_password
     volumes:
       - bookstack_database:/var/lib/mysql
     networks:

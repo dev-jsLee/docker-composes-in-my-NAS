@@ -3,6 +3,8 @@ services:
     image: jc21/nginx-proxy-manager:latest
     container_name: nginx-proxy-manager
     restart: on-failure:2
+    # DSM 환경에서 권한 설정
+    user: "1026:100"
     ports:
       # 포트: 호스트포트:컨테이너포트
       - "52043:81"    # 관리 웹 인터페이스
@@ -10,6 +12,9 @@ services:
       - "52443:443"   # HTTPS 프록시
     environment:
       - TZ=Asia/Seoul
+      # DSM 환경에서 사용자 권한 설정 (PUID/PGID)
+      - PUID=1026
+      - PGID=100
       # 데이터베이스 설정
       - DB_MYSQL_HOST=npm_db
       - DB_MYSQL_PORT=3306
@@ -17,12 +22,12 @@ services:
       - DB_MYSQL_PASSWORD=npm123
       - DB_MYSQL_NAME=npm
       # 선택: SSL 설정
-      - DISABLE_IPV6=true
+      # - DISABLE_IPV6=true
     volumes:
       # 설정 및 데이터 저장
       - /volume4/warehouse/nginx-proxy-data:/data
       # SSL 인증서 저장
-      - /volume4/warehouse/nginx-proxy-ssl:/etc/letsencrypt
+      # - /volume4/warehouse/nginx-proxy-ssl:/etc/letsencrypt
       # 선택: 커스텀 Nginx 설정
       # - /volume4/warehouse/nginx-proxy-custom:/etc/nginx/custom:ro
     networks:
@@ -38,7 +43,12 @@ services:
     image: mariadb:11
     container_name: npm_db
     restart: on-failure:2
+    # DSM 환경에서 권한 설정
+    user: "1026:100"
     environment:
+      # DSM 환경에서 사용자 권한 설정 (PUID/PGID)
+      - PUID=1026
+      - PGID=100
       # 필수: 데이터베이스 설정 (Nginx Proxy Manager와 일치)
       - MARIADB_ROOT_PASSWORD=npm_root123
       - MARIADB_DATABASE=npm
