@@ -4,14 +4,14 @@ services:
     container_name: bookstack
     restart: on-failure:2
     ports:
-      # 포트: 호스트포트:컨테이너포트
+      # DSM Docker에서 WebStation 접근용 포트 (호스트 포트에 바인딩)
       - "52045:80"  # BookStack 웹 인터페이스
     environment:
       - TZ=Asia/Seoul
       # 필수: 사용자 권한 설정
       - PUID=1026
       - PGID=100
-      # 필수: 애플리케이션 URL 설정
+      # 필수: 애플리케이션 URL 설정 (WebStation에서 접근할 수 있는 주소)
       - APP_URL=http://localhost:52045
       # 데이터베이스 설정 (SQLite 사용 - 권한 문제 해결)
       - DB_CONNECTION=sqlite
