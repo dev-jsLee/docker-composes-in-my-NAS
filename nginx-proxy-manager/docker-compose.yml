@@ -12,15 +12,17 @@ services:
       - "52443:443"   # HTTPS 프록시
     environment:
       - TZ=Asia/Seoul
-      # DSM 환경에서 사용자 권한 설정 (PUID/PGID)
+      # DSM 환경에서 사용자 권한 설정 (nginx-proxy-manager에서는 필요)
       - PUID=1026
       - PGID=100
-      # 데이터베이스 설정
+      # 데이터베이스 설정 (MariaDB 11 호환)
       - DB_MYSQL_HOST=npm_db
       - DB_MYSQL_PORT=3306
       - DB_MYSQL_USER=npm
       - DB_MYSQL_PASSWORD=npm123
       - DB_MYSQL_NAME=npm
+      # MariaDB 11에서 연결 문제 해결을 위한 추가 설정
+      - DB_MYSQL_ATTR_SSL_VERIFY_SERVER_CERT=false
       # 선택: SSL 설정
       # - DISABLE_IPV6=true
     volumes:
@@ -34,7 +36,9 @@ services:
       - nginx-proxy-network
     depends_on:
       npm_db:
-        condition: service_healthy
+        condition: service_started
+        # 서비스가 완전히 시작될 때까지 기다리지 않고 시작
+        # (MariaDB가 완전히 시작되지 않아도 nginx-proxy-manager 시작 시도)
     # 메모리 제한
     mem_limit: 512m
 
@@ -43,30 +47,33 @@ services:
     image: mariadb:11
     container_name: npm_db
     restart: on-failure:2
-    # DSM 환경에서 권한 설정
-    user: "1026:100"
+    # DSM 환경에서 권한 설정 제거 (MariaDB에서 권한 문제 발생 가능)
+    # user: "1026:100"
     environment:
-      # DSM 환경에서 사용자 권한 설정 (PUID/PGID)
-      - PUID=1026
-      - PGID=100
+      # DSM 환경에서 사용자 권한 설정 (PUID/PGID) 제거 (MariaDB에서 호환성 문제)
+      # - PUID=1026
+      # - PGID=100
       # 필수: 데이터베이스 설정 (Nginx Proxy Manager와 일치)
       - MARIADB_ROOT_PASSWORD=npm_root123
       - MARIADB_DATABASE=npm
       - MARIADB_USER=npm
       - MARIADB_PASSWORD=npm123
+      # MariaDB 11에서 root 인증 문제 해결
+      - MARIADB_ROOT_HOST=%
+      - MARIADB_DEFAULT_AUTHENTICATION_PLUGIN=mysql_native_password
     volumes:
       - /volume4/warehouse/nginx-proxy-database:/var/lib/mysql
     networks:
       - nginx-proxy-network
     # 메모리 제한
     mem_limit: 256m
-    # 헬스체크
+    # 헬스체크 (MariaDB 11에서 mariadb-admin 사용)
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s  # MariaDB 11 시작 시간 증가
 
 networks:
   nginx-proxy-network:
