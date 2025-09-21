@@ -25,6 +25,9 @@ coverage/
 .env.production.local
 .env.*.local
 
+# 개발용 .env 파일 (Docker에서 사용)
+# .env
+
 # 로그 파일
 logs
 *.log

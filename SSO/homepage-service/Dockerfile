@@ -9,6 +9,15 @@ COPY package.json ./
 COPY package-lock.json ./
 RUN npm ci --only=production && npm cache clean --force
 
+# 기본 환경변수 설정 (docker-compose에서 오버라이드 가능)
+ENV NODE_ENV=development
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV REDIS_HOST=redis
+ENV REDIS_PORT=6379
+ENV SESSION_SECRET=your-super-secret-session-key-change-this
+ENV CORS_ORIGIN=http://localhost
+
 # 애플리케이션 코드 복사
 COPY . .
 

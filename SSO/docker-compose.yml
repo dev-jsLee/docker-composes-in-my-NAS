@@ -10,12 +10,27 @@ services:
       - "52100:3000"  # 메인 포트
     environment:
       - NODE_ENV=development
-      - REDIS_URL=redis://redis:6379
-      - SESSION_SECRET=${SESSION_SECRET}
-      - DB_URL=${DATABASE_URL}
-      - CORS_ORIGIN=${CORS_ORIGIN}
+      - PORT=3000
+      - HOST=0.0.0.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis-password-change-this
+      - SESSION_SECRET=your-super-secret-session-key-change-this-in-production
+      - DATABASE_URL=postgresql://sso_user:sso_password@localhost:5432/sso_db
+      - CORS_ORIGIN=http://localhost
+      - BCRYPT_ROUNDS=12
+      - COOKIE_DOMAIN=
+      - COOKIE_SECURE=false
+      - COOKIE_HTTP_ONLY=true
+      - COOKIE_MAX_AGE=86400000
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
       - SERVICE_DISCOVERY_ENABLED=true
       - NETWORK_SCAN_ENABLED=true
+      - DISCOVERY_INTERVAL=60000
+      - HEALTH_CHECK_INTERVAL=30000
+      - HEALTH_CHECK_TIMEOUT=5000
+      - SCAN_PORTS=3000,3001,3002,3003,3004,3005,8000,8080,9000
     depends_on:
       - redis
     volumes:
@@ -30,7 +45,7 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --requirepass redis-password-change-this
     volumes:
       - redis-data:/data
     networks:
