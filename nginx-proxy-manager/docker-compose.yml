@@ -11,8 +11,8 @@ services:
     environment:
       - TZ=Asia/Seoul
       # DSM 환경에서 사용자 권한 설정 (nginx-proxy-manager에서는 필요)
-      - PUID=1026
-      - PGID=100
+      # - PUID=1026
+      # - PGID=100
       # 데이터베이스 설정 (MariaDB 11 호환)
       - DB_MYSQL_HOST=npm_db
       - DB_MYSQL_PORT=3306
