@@ -7,7 +7,7 @@ services:
       context: ./homepage-service
       dockerfile: Dockerfile
     ports:
-      - "52100:3000"  # 메인 포트
+      - "52220:3000"  # 메인 포트
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -44,8 +44,8 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes --requirepass redis-password-change-this
+      - "52379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
     networks:
@@ -60,8 +60,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - "52280:80"
+      - "52243:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
