@@ -33,11 +33,11 @@ services:
       - POSTGRES_PASSWORD=taiga
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
-      - SECRET_KEY=your-secret-key-here
+      - SECRET_KEY=4D3ECC83-24D0-42D5-A290-E0954E26E007
       - DEBUG=False
       - PUBLIC_REGISTER_ENABLED=true
-      - DEFAULT_FROM_EMAIL=admin@yourcompany.com
-      - SERVER_EMAIL=admin@yourcompany.com
+      - DEFAULT_FROM_EMAIL=jslee7518@gmail.com
+      - SERVER_EMAIL=jslee7518@gmail.com
     volumes:
       - taiga_media:/taiga-back/media
       - taiga_static:/taiga-back/static
@@ -80,9 +80,9 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
-  taiga_media:
-  taiga_static:
+  postgres_data:"/volume4/warehouse/taiga/postgres-data"
+  taiga_media:"/volume4/warehouse/taiga/media"
+  taiga_static:"/volume4/warehouse/taiga/static"
 
 networks:
   taiga-network:
