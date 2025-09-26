@@ -80,9 +80,24 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:"/volume4/warehouse/taiga/postgres-data"
-  taiga_media:"/volume4/warehouse/taiga/media"
-  taiga_static:"/volume4/warehouse/taiga/static"
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume4/warehouse/taiga/postgres-data
+  taiga_media:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume4/warehouse/taiga/media
+  taiga_static:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume4/warehouse/taiga/static
 
 networks:
   taiga-network:
