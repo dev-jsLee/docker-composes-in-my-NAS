@@ -1,0 +1,52 @@
+services:
+  # 인증 서비스만 먼저 테스트
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LDAP_URL=${LDAP_URL:-ldap://192.168.1.100:389}
+      - LDAP_BASE_DN=${LDAP_BASE_DN:-dc=dsm,dc=local}
+      - LDAP_BIND_DN=${LDAP_BIND_DN:-cn=admin,dc=dsm,dc=local}
+      - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD:-your-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis-password}
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - LOG_LEVEL=info
+    depends_on:
+      - redis
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+
+  # Redis만 사용
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis-password}
+    volumes:
+      - redis-data:/data
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+
+# 네트워크 정의
+networks:
+  ldap-sso-network:
+    driver: bridge
+
+# 볼륨 정의
+volumes:
+  redis-data:
+    driver: local
