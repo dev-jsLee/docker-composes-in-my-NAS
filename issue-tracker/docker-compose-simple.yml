@@ -8,17 +8,9 @@ services:
     environment:
       POSTGRES_DB: taiga
       POSTGRES_USER: taiga
-      POSTGRES_PASSWORD: taiga
+      POSTGRES_PASSWORD: taiga123
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - taiga-network
-    restart: "on-failure:2"
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: taiga-redis
     networks:
       - taiga-network
     restart: "on-failure:2"
@@ -28,26 +20,36 @@ services:
     image: taigaio/taiga-back:latest
     container_name: taiga-back
     environment:
-      - POSTGRES_DB=taiga
-      - POSTGRES_USER=taiga
-      - POSTGRES_PASSWORD=taiga
-      - POSTGRES_HOST=postgres
-      - REDIS_HOST=redis
-      - TAIGA_SECRET_KEY=4D3ECC83-24D0-42D5-A290-E0954E26E007
-      - SECRET_KEY=4D3ECC83-24D0-42D5-A290-E0954E26E007
-      - DEBUG=False
-      - PUBLIC_REGISTER_ENABLED=true
-      - DEFAULT_FROM_EMAIL=jslee7518@gmail.com
-      - SERVER_EMAIL=jslee7518@gmail.com
-      - TAIGA_SITES_DOMAIN=localhost:52030
-      - TAIGA_SITES_SCHEME=http
-      - CELERY_ENABLED=False
+      # 데이터베이스 설정
+      POSTGRES_DB: taiga
+      POSTGRES_USER: taiga
+      POSTGRES_PASSWORD: taiga123
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      
+      # 기본 설정
+      TAIGA_SECRET_KEY: 4D3ECC83-24D0-42D5-A290-E0954E26E007
+      TAIGA_DEBUG: "False"
+      
+      # 사이트 설정
+      TAIGA_SITES_SCHEME: http
+      TAIGA_SITES_DOMAIN: localhost:52030
+      
+      # 등록 설정
+      PUBLIC_REGISTER_ENABLED: "true"
+      
+      # 이메일 설정
+      DEFAULT_FROM_EMAIL: jslee7518@gmail.com
+      SERVER_EMAIL: jslee7518@gmail.com
+      
+      # 미디어 설정
+      MEDIA_URL: http://localhost:52030/media/
+      STATIC_URL: http://localhost:52030/static/
     volumes:
       - taiga_media:/taiga-back/media
       - taiga_static:/taiga-back/static
     depends_on:
       - postgres
-      - redis
     networks:
       - taiga-network
     restart: "on-failure:2"
@@ -57,10 +59,8 @@ services:
     image: taigaio/taiga-front:latest
     container_name: taiga-front
     environment:
-      - TAIGA_URL=http://localhost:52030
-      - TAIGA_WEBSOCKETS_URL=ws://localhost:52030
-      - TAIGA_SUBPATH=
-      - PUBLIC_REGISTER_ENABLED=true
+      TAIGA_URL: http://localhost:52030
+      TAIGA_WEBSOCKETS_URL: ws://localhost:52030
     volumes:
       - taiga_static:/taiga-front/dist
     depends_on:
@@ -76,8 +76,9 @@ services:
     ports:
       - "52030:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - taiga_static:/var/www/taiga:ro
+      - ./nginx-simple.conf:/etc/nginx/nginx.conf:ro
+      - taiga_static:/var/www/static:ro
+      - taiga_media:/var/www/media:ro
     depends_on:
       - taiga-front
       - taiga-back
