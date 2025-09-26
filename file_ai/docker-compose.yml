@@ -1,0 +1,18 @@
+services:
+  file_ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local/file-ai:vtracer
+    container_name: file_ai
+    environment:
+      - TZ=Asia/Seoul
+      - PUID=1000
+      - PGID=1000
+      - COLOR=1 # 컬러 추적 기본값
+    volumes:
+      - ./in:/work/in
+      - ./out:/work/out
+    # 필요 시 단발 실행 예시:
+    # command: ["/work/in"]
+    restart: "no"
