@@ -1,3 +1,5 @@
+issue-tracker/*.html
+
 # Node.js 관련 파일
 node_modules/
 npm-debug.log*
