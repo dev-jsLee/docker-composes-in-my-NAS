@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - taiga-network
-    restart: unless-stopped
+    restart: "on-failure:2"
 
   # Redis Cache
   redis:
@@ -21,7 +21,7 @@ services:
     container_name: taiga-redis
     networks:
       - taiga-network
-    restart: unless-stopped
+    restart: "on-failure:2"
 
   # Taiga Backend
   taiga-back:
@@ -46,7 +46,7 @@ services:
       - redis
     networks:
       - taiga-network
-    restart: unless-stopped
+    restart: "on-failure:2"
 
   # Taiga Frontend
   taiga-front:
@@ -61,7 +61,7 @@ services:
       - taiga-back
     networks:
       - taiga-network
-    restart: unless-stopped
+    restart: "on-failure:2"
 
   # Nginx Reverse Proxy
   nginx:
@@ -77,7 +77,7 @@ services:
       - taiga-back
     networks:
       - taiga-network
-    restart: unless-stopped
+    restart: "on-failure:2"
 
 volumes:
   postgres_data:
