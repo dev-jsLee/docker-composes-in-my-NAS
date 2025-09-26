@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  # DSM LDAP 연동 인증 서비스
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LDAP_URL=${LDAP_URL:-ldap://dsm-server:389}
+      - LDAP_BASE_DN=${LDAP_BASE_DN:-dc=dsm,dc=local}
+      - LDAP_BIND_DN=${LDAP_BIND_DN:-cn=admin,dc=dsm,dc=local}
+      - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis-password-change-this}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=1h
+      - REFRESH_TOKEN_EXPIRES_IN=30d
+      - OIDC_ISSUER=${OIDC_ISSUER:-http://localhost:3002}
+      # SAML 설정 (주석 처리됨 - 필요시 활성화)
+      # - SAML_ENTITY_ID=${SAML_ENTITY_ID:-http://localhost:3002/saml}
+      # - SAML_SSO_URL=${SAML_SSO_URL:-http://localhost:3002/saml/sso}
+      # - SAML_CERT_PATH=/app/certs/saml.crt
+      # - SAML_KEY_PATH=/app/certs/saml.key
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+      - LOG_LEVEL=info
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+      - ./certs:/app/certs:ro
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # OIDC/SAML 프로바이더
+  sso-provider:
+    build:
+      context: ./sso-provider
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LDAP_URL=${LDAP_URL:-ldap://dsm-server:389}
+      - LDAP_BASE_DN=${LDAP_BASE_DN:-dc=dsm,dc=local}
+      - LDAP_BIND_DN=${LDAP_BIND_DN:-cn=admin,dc=dsm,dc=local}
+      - LDAP_BIND_PASSWORD=${LDAP_BIND_PASSWORD}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=sso_db
+      - DB_USER=sso_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_PRIVATE_KEY_PATH=/app/certs/oidc.key
+      - JWT_PUBLIC_KEY_PATH=/app/certs/oidc.pub
+      # SAML 설정 (주석 처리됨 - 필요시 활성화)
+      # - SAML_CERT_PATH=/app/certs/saml.crt
+      # - SAML_KEY_PATH=/app/certs/saml.key
+      # - SAML_ENTITY_ID=${SAML_ENTITY_ID:-http://localhost:3002/saml}
+      - OIDC_ISSUER=${OIDC_ISSUER:-http://localhost:3002}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis-password-change-this}
+      - LOG_LEVEL=info
+    volumes:
+      - ./sso-provider:/app
+      - /app/node_modules
+      - ./certs:/app/certs:ro
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 공유 Redis (세션 및 캐시)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis-password-change-this}
+    volumes:
+      - redis-data:/data
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL (토큰, 로그, 클라이언트 정보)
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=sso_db
+      - POSTGRES_USER=sso_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sso_user -d sso_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway (Nginx)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - auth-service
+      - sso-provider
+    networks:
+      - ldap-sso-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# 네트워크 정의
+networks:
+  ldap-sso-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# 볼륨 정의
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
