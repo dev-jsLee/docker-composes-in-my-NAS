@@ -39,8 +39,8 @@ services:
       - PUBLIC_REGISTER_ENABLED=true
       - DEFAULT_FROM_EMAIL=jslee7518@gmail.com
       - SERVER_EMAIL=jslee7518@gmail.com
-      - TAIGA_SITES_DOMAIN=kwonluna.co.kr:52030
-      - TAIGA_SITES_SCHEME=http
+      - TAIGA_SITES_DOMAIN=issue.kwonluna.co.kr
+      - TAIGA_SITES_SCHEME=https
       - CELERY_ENABLED=False
     volumes:
       - taiga_media:/taiga-back/media
@@ -57,8 +57,8 @@ services:
     image: taigaio/taiga-front:latest
     container_name: taiga-front
     environment:
-      - TAIGA_URL=http://kwonluna.co.kr:52030
-      - TAIGA_WEBSOCKETS_URL=ws://kwonluna.co.kr:52030
+      - TAIGA_URL=http://localhost:52030
+      - TAIGA_WEBSOCKETS_URL=ws://localhost:52030
       - TAIGA_SUBPATH=
       - PUBLIC_REGISTER_ENABLED=true
     volumes:
