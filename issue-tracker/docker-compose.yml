@@ -33,11 +33,14 @@ services:
       - POSTGRES_PASSWORD=taiga
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
+      - TAIGA_SECRET_KEY=4D3ECC83-24D0-42D5-A290-E0954E26E007
       - SECRET_KEY=4D3ECC83-24D0-42D5-A290-E0954E26E007
       - DEBUG=False
       - PUBLIC_REGISTER_ENABLED=true
       - DEFAULT_FROM_EMAIL=jslee7518@gmail.com
       - SERVER_EMAIL=jslee7518@gmail.com
+      - TAIGA_SITES_DOMAIN=localhost:8080
+      - TAIGA_SITES_SCHEME=http
     volumes:
       - taiga_media:/taiga-back/media
       - taiga_static:/taiga-back/static
@@ -55,6 +58,7 @@ services:
     environment:
       - TAIGA_URL=http://localhost:8080
       - TAIGA_WEBSOCKETS_URL=ws://localhost:8080
+      - TAIGA_SUBPATH=""
     volumes:
       - taiga_static:/taiga-front/dist
     depends_on:
