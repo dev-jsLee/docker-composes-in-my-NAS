@@ -47,8 +47,8 @@ services:
       - SECRET_KEY=4D3ECC83-24D0-42D5-A290-E0954E26E007
       - DEBUG=0
       - SENTRY_DSN=""
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000
-      - WEB_URL=http://localhost:3000
+      - CORS_ALLOWED_ORIGINS=http://localhost:52030
+      - WEB_URL=http://localhost:52030
       - ENABLE_SIGNUP=1
       - EMAIL_HOST=""
       - EMAIL_HOST_USER=""
@@ -76,10 +76,10 @@ services:
     image: makeplane/plane-frontend:latest
     container_name: plane-frontend
     ports:
-      - "3000:3000"
+      - "52030:3000"
     environment:
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-      - NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:52031
+      - NEXT_PUBLIC_WEBAPP_URL=http://localhost:52030
     depends_on:
       - plane-backend
     networks:
@@ -91,7 +91,7 @@ services:
     image: nginx:alpine
     container_name: plane-nginx
     ports:
-      - "8000:80"
+      - "52031:80"
     volumes:
       - ./nginx-plane.conf:/etc/nginx/nginx.conf:ro
     depends_on:

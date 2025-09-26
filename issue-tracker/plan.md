@@ -29,8 +29,8 @@ QA 단계에서 사용할 익명 이슈 트래킹 시스템을 Docker로 구축�
 # Plane.so 실행 (추천)
 docker-compose -f docker-compose-plane.yml up -d
 
-# 접속: http://localhost:3000 (프론트엔드)
-# API: http://localhost:8000 (백엔드)
+# 접속: http://localhost:52030 (프론트엔드)
+# API: http://localhost:52031 (백엔드)
 ```
 
 ### 구성 요소
@@ -46,7 +46,7 @@ docker-compose -f docker-compose-plane.yml up -d
 ### 1. Taiga.io (수정된 버전)
 - **파일**: `docker-compose.yml`
 - **상태**: SECRET_KEY 오류 수정 완료
-- **접속**: http://localhost:8080
+- **접속**: http://localhost:52030
 
 ### 2. 기타 옵션
 - **Redmine**: 전통적이지만 안정적

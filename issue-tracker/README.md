@@ -13,7 +13,7 @@ QA 단계에서 사용할 익명 이슈 트래킹 시스템입니다.
 docker-compose up -d
 
 # 3. 접속
-# http://localhost:8080
+# http://localhost:52030
 ```
 
 ### Mattermost (채팅 기반)
@@ -21,8 +21,8 @@ docker-compose up -d
 # 실행
 docker-compose -f docker-compose-mattermost.yml up -d
 
-# 접속
-# http://localhost:8081
+# 접속  
+# http://localhost:52030
 ```
 
 ## 📋 주요 기능
