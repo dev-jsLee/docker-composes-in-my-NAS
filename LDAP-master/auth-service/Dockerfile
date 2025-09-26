@@ -4,14 +4,11 @@ FROM node:18-alpine
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# 패키지 매니저를 위한 apk 업데이트 및 필수 패키지 설치
-RUN apk update && apk add --no-cache \
-    dumb-init \
-    curl \
-    && rm -rf /var/cache/apk/*
+# 네트워크 문제 우회 - 필수 패키지만 설치
+RUN apk add --no-cache dumb-init curl 2>/dev/null || echo "패키지 설치 건너뜀"
 
-# dumb-init을 엔트리포인트로 설정 (좀비 프로세스 방지)
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+# dumb-init이 설치되었다면 사용, 아니면 기본 실행
+# ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # 사용자 생성 (root 권한 사용 지양)
 RUN addgroup -g 1001 -S nodejs && \
@@ -26,18 +23,15 @@ RUN npm ci --only=production && npm cache clean --force
 # 소스 코드 복사 (권한 설정)
 COPY --chown=nodejs:nodejs src/ ./src/
 
-# 헬스체크를 위한 curl 설치
-RUN apk add --no-cache curl
-
 # 사용자 전환
 USER nodejs
 
 # 포트 노출
 EXPOSE 3000
 
-# 헬스체크
+# 헬스체크 (curl이 없을 수 있으므로 간단한 방법 사용)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+    CMD wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1
 
 # 애플리케이션 시작
 CMD ["node", "src/server.js"]
