@@ -3,7 +3,7 @@ services:
   chzzk-recorder:
     image: python:3.11-slim
     container_name: chzzk-recorder
-    restart: unless-stopped
+    restart: on-failure:2
     working_dir: /app
     environment:
       - TZ=Asia/Seoul
