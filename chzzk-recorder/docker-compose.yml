@@ -1,0 +1,71 @@
+services:
+  # 치지직 방송 감지 및 녹화 서비스
+  chzzk-recorder:
+    image: python:3.11-slim
+    container_name: chzzk-recorder
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - TZ=Asia/Seoul
+      - PYTHONUNBUFFERED=1
+      # 치지직 채널 설정 (환경변수로 관리)
+      - CHZZK_CHANNELS=90d25b47d255d650d20312f8cc9408de,d7ddd7585a271e55159ae47c0ce9a9dd  # 녹화할 채널 ID들 (쉼표로 구분)
+      - CHECK_INTERVAL=60  # 방송 상태 체크 간격 (초)
+      - RECORD_QUALITY=best  # 녹화 품질 (best, worst, 720p, 480p 등)
+      - OUTPUT_FORMAT=mp4  # 출력 파일 형식
+    volumes:
+      - ./app:/app  # 애플리케이션 코드
+      - ./recordings:/recordings  # 녹화 파일 저장 경로
+      - ./logs:/logs  # 로그 파일 저장
+      - ./config:/config  # 설정 파일
+    command: >
+      sh -c "
+        pip install --no-cache-dir requests yt-dlp schedule &&
+        python /app/chzzk_recorder.py
+      "
+    networks:
+      - chzzk-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # 웹 대시보드 (선택사항)
+  chzzk-dashboard:
+    image: nginx:alpine
+    container_name: chzzk-dashboard
+    restart: unless-stopped
+    ports:
+      - "52050:80"
+    volumes:
+      - ./dashboard:/usr/share/nginx/html
+      - ./recordings:/usr/share/nginx/html/recordings:ro  # 녹화 파일 웹 접근
+    networks:
+      - chzzk-network
+    depends_on:
+      - chzzk-recorder
+
+  # 데이터베이스 (녹화 기록 관리용)
+  chzzk-db:
+    image: sqlite:latest
+    container_name: chzzk-db
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    environment:
+      - SQLITE_DATABASE=/data/chzzk_records.db
+    networks:
+      - chzzk-network
+
+networks:
+  chzzk-network:
+    driver: bridge
+
+volumes:
+  recordings:
+    driver: local
+  logs:
+    driver: local
+  data:
+    driver: local
