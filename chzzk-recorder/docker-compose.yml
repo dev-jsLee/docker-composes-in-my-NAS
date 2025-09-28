@@ -46,17 +46,9 @@ services:
     depends_on:
       - chzzk-recorder
 
-  # 데이터베이스 (녹화 기록 관리용)
-  chzzk-db:
-    image: sqlite:latest
-    container_name: chzzk-db
-    restart: unless-stopped
-    volumes:
-      - ./data:/data
-    environment:
-      - SQLITE_DATABASE=/data/chzzk_records.db
-    networks:
-      - chzzk-network
+  # 데이터베이스 관리 (SQLite 파일 기반)
+  # SQLite는 파일 기반이므로 별도 컨테이너 불필요
+  # ./data/chzzk_records.db 파일로 관리됨
 
 networks:
   chzzk-network:
