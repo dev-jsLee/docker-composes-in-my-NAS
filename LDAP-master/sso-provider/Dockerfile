@@ -17,8 +17,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # 의존성 파일 복사
 COPY package*.json ./
 
-# 프로덕션 의존성 설치
-RUN npm ci --only=production && npm cache clean --force
+# 프로덕션 의존성 설치 (package-lock.json이 없으므로 npm install 사용)
+RUN npm install --only=production && npm cache clean --force
 
 # 소스 코드 복사
 COPY --chown=nodejs:nodejs . .
