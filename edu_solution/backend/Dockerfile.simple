@@ -1,0 +1,18 @@
+# 네트워크 문제 해결을 위한 간단한 Dockerfile
+FROM python:3.11-slim
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# requirements.txt 복사 및 의존성 설치 (gcc 없이)
+COPY requirements.txt .
+RUN pip install --no-cache-dir --no-compile -r requirements.txt
+
+# 소스 코드 복사
+COPY . .
+
+# FastAPI 서버 실행
+EXPOSE 8000
+
+# 개발 모드로 실행 (자동 리로드)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
